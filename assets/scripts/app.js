@@ -48,7 +48,7 @@ class ProjectList {
     this.type = type;
     const prjItems = document.querySelectorAll(`#${type}-projects li`);
     for(const prjItem of prjItems) {
-      this.projects.push(new ProjectItem(prjItem.id, this.switchProject.bind(this)), this.type);
+      this.projects.push(new ProjectItem(prjItem.id, this.switchProject.bind(this), this.type));
     }
     console.log(this.projects);
   }
