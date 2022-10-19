@@ -80,6 +80,7 @@ class ProjectItem {
     this.updateProjectsListsHandler = updateProjectsListsFunction;
     this.connectMoreInfoButton();
     this.connectSwitchButton(type);
+    this.connectDrag();
   }
 
   showMoreInfoHandler() {
@@ -93,6 +94,18 @@ class ProjectItem {
     }, tooltipText, this.id);
     tooltip.attach();
     this.hasActiveTooltip = true;
+  }
+
+  connectDrag() {
+    const item = document.getElementById(this.id);
+    item.addEventListener('dragstart', event => {
+      event.dataTransfer.setData('text/plain', this.id);
+      event.dataTransfer.effectAllowed = 'move';
+    });
+    
+    // item.addEventListener('dragend', event => {
+    //   console.log(event);
+    // })
   }
 
   connectMoreInfoButton() {
@@ -126,6 +139,39 @@ class ProjectList {
       this.projects.push(new ProjectItem(prjItem.id, this.switchProject.bind(this), this.type));
     }
     console.log(this.projects);
+    this.connectDroppable();
+  }
+
+  connectDroppable() {
+    const list = document.querySelector(`#${this.type}-projects ul`);
+
+    list.addEventListener('dragenter', event => {
+      if (event.dataTransfer.types[0] === 'text/plain') { //only if item is dragged, no other element
+        list.parentElement.classList.add('droppable');
+        event.preventDefault();
+      }
+    });
+
+    list.addEventListener('dragover', event => {
+      if (event.dataTransfer.types[0] === 'text/plain') {
+        event.preventDefault();
+      }
+    });
+
+    list.addEventListener('dragleave', event => {
+      if (event.relatedTarget.closest(`#${this.type}-projects ul`) !== list) { //if draggable item is out of the ul
+        list.parentElement.classList.remove('droppable');
+      }
+    })
+
+    list.addEventListener('drop', event => {
+      const prjId = event.dataTransfer.getData('text/plain');
+      if (this.projects.find(p => p.id) === prjId) {
+        return;
+      }
+      document.getElementById(prjId).querySelector('button:last-of-type').click();
+      list.parentElement.classList.remove('droppable');
+    });
   }
 
   setswitchHandlerFunction(switchHandlerFunction) {
@@ -153,11 +199,11 @@ class App {
     activeProjectsList.setswitchHandlerFunction(finishedProjectsList.addProject.bind(finishedProjectsList));
     finishedProjectsList.setswitchHandlerFunction(activeProjectsList.addProject.bind(activeProjectsList));
 
-    const timerId = setTimeout(this.startAnalytics, 3000);
+    // const timerId = setTimeout(this.startAnalytics, 3000);
 
-    document.getElementById('stop-analytics-btn').addEventListener('click', () => {
-      clearTimeout(timerId);
-    });
+    // document.getElementById('stop-analytics-btn').addEventListener('click', () => {
+    //   clearTimeout(timerId);
+    // });
   }
 
   static startAnalytics() {
